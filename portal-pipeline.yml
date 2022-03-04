@@ -1,0 +1,67 @@
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - code/ui
+    exclude:
+    - code/api
+
+stages:
+- stage: build
+  displayName: Build Web App
+  pool:
+    vmImage: 'windows-latest'
+  jobs:
+  - job: 
+    steps:
+    - task: Npm@1
+      inputs:
+        command: 'install'
+        workingDir: 'code\ui\portal'
+    - task: Npm@1
+      inputs:
+        command: 'custom'
+        workingDir: 'code\ui\portal'
+        customCommand: 'ng build --configuration=production'
+    - task: CopyFiles@2 
+      displayName: 'Copy Files to www'
+      inputs:
+        SourceFolder: 'code\ui\portal\dist\fuse'
+        TargetFolder: 'www'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish web artifact'
+      inputs:
+        pathtoPublish: 'www'
+        artifactName: 'webapp'
+ 
+- stage: publish
+  displayName: Publish SWA
+  dependsOn: build
+  pool:
+    vmImage: 'ubuntu-latest'
+    
+  jobs:
+  - job:
+    steps:
+    - download: current
+      artifact: webapp
+ 
+    - task: CopyFiles@2
+      displayName: Copy artifact contents
+      inputs:
+        SourceFolder: '$(Pipeline.Workspace)/webapp'
+        Contents: '**'
+        TargetFolder: 'webapp'
+        OverWrite: true'
+ 
+    - task: AzureStaticWebApp@0
+      displayName: Deploy Static Web App
+      inputs:
+        action: upload
+        app_location: 'webapp/'
+        output_location: ''
+        azure_static_web_apps_api_token: 487a1dbc01093c016f4a9ba81498be4a0122c615befb74e238bfd284ed1932c80-4c717a0a-ef5a-470b-ad4e-d14db5d56aaf00f16388
+       

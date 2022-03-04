@@ -1,0 +1,87 @@
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - code/api 
+    exclude:
+    - code/ui 
+
+stages:
+- stage: Build
+  displayName: Test and build the backend
+  jobs:
+  - job: build
+    pool:
+      vmImage: windows-latest
+    steps:  
+    - task: DotNetCoreCLI@2
+      displayName: Build Solution
+      inputs:
+        command: 'build'
+        projects: '**/*.sln'
+    - task: DotNetCoreCLI@2
+      displayName: Unit Test
+      inputs:
+        command: 'test'
+        projects: '**/*.UnitTests/*.csproj'
+        arguments: '--no-build' 
+    
+    - task: efcore-migration-script-generator-task@0
+      displayName: Generate Migration Script 
+      inputs:
+        projectpath: '$(Build.SourcesDirectory)/code/api/Revendor/Revendor.Infrastructure/Revendor.Infrastructure.csproj'
+        databasecontexts: 'RevendorContext'
+        startupprojectpath: '$(Build.SourcesDirectory)/code/api/Revendor/Revendor.FunctionApp/Revendor.FunctionApp.csproj'
+        targetfolder: '$(build.artifactstagingdirectory)/migrations'
+        build: false
+        installdependencies: true
+        
+    - task: DotNetCoreCLI@2
+      displayName: Build Api
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '**/*Revendor.FunctionApp.csproj'
+        arguments: '--configuration release --output $(Build.ArtifactStagingDirectory)/api'
+        zipAfterPublish: true
+
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Api 
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'relase-package'
+        publishLocation: 'Container'
+
+
+- stage: Release
+  displayName: publish the backend
+  jobs:
+  - job: release
+    pool:
+      vmImage: windows-latest
+    steps:  
+    - download: current
+      artifact: relase-package
+
+    - task: SqlAzureDacpacDeployment@1
+      displayName: Apply Migration Script 
+      inputs:
+        azureSubscription: 'revedor azure resources'
+        AuthenticationType: 'connectionString'
+        ConnectionString: 'Server=tcp:revendor-dev.database.windows.net,1433;Initial Catalog=revendor;Persist Security Info=False;User ID=revendor.db;Password=EUw!-fCDgx-a5mj8;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+        deployType: 'SqlTask'
+        SqlFile: '$(Pipeline.Workspace)/relase-package/migrations/RevendorContext.sql'
+        SqlAdditionalArguments: '-verbose'
+        IpDetectionMethod: 'AutoDetect'
+ 
+    - task: AzureFunctionApp@1
+      displayName: Release function app 
+      inputs:
+        azureSubscription: 'revedor azure resources'
+        appType: 'functionApp'
+        appName: 'revendor-dev'
+        package: '$(Pipeline.Workspace)/relase-package/api/*.zip'
+        deploymentMethod: 'auto'

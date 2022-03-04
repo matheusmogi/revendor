@@ -1,0 +1,20 @@
+{
+    "sqltools.connections": [
+        {
+            "mssqlOptions": {
+                "appName": "SQLTools",
+                "useUTC": true,
+                "encrypt": true
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 1433,
+            "driver": "MSSQL",
+            "name": "local",
+            "connectString": "Data Source=localhost,1433;Initial Catalog=Skyline;User ID=sa;Password=p@ssw0rd;Connection Timeout=120; MultipleActiveResultSets=true",
+            "username": "sa",
+            "password": "p@ssw0rd",
+            "database": "Skyline"
+        }
+    ]
+}

@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Revendor.Domain\Revendor.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.19" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.19">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.19" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.19" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.19">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.19" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.19" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.19" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.19" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.19" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Migrations" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="app.settings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
